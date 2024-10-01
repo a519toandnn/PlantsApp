@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f4f4f4"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Soil Moisture"
+        android:textSize="30sp"
+        android:textColor="#14aeeb"
+        />
+
+    <TextView
+        android:id="@+id/moisture_percentage"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:background="@drawable/circular_background"
+        android:text="70%"
+        android:textSize="48sp"
+        android:textColor="#15ea71" />
+
+    <TextView
+        android:id="@+id/last_updated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Last Updated: N/A"
+        android:textSize="20sp"
+        android:textColor="#555" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Status: Disconnected"
+        android:textSize="20sp"
+        android:textColor="#555" />
+
+    <Button
+        android:id="@+id/refresh_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Refresh Data"
+        android:backgroundTint="#1776e8"
+        android:textSize="16sp"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/water_pump_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#1776e8"
+        android:text="Water Pump"
+        android:textSize="16sp"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/btn_plants_disease"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Check Plant Disease"
+        android:backgroundTint="#1776e8"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>
