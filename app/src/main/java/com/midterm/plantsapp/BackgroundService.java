@@ -24,7 +24,7 @@ import io.socket.client.Socket;
 public class BackgroundService extends Service {
 
     private static final String CHANNEL_ID = "PlantAlerts";
-    private static final String SERVER_URL = "http://192.168.0.1:5000"; // Raspberry Pi IP
+    private static final String SERVER_URL = "http://192.168.137.205:5000"; // Raspberry Pi IP
     private Socket socket;
 
     @Override

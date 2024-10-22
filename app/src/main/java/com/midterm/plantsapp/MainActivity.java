@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -34,11 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private Socket socket;
     private ActivityMainBinding binding;
     private static final String CHANNEL_ID = "Humidity Alert";
-    private static final String SERVER_URL = "http://172.20.10.3:5000";
+    private static final String SERVER_URL = "http://192.168.137.205:5000";
     private boolean isPumpOn = false;
     private WaveView waveView;
     private TextView moisturePercentage;
-    ActionBar actionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +78,27 @@ public class MainActivity extends AppCompatActivity {
         try {
             socket = IO.socket(SERVER_URL);
             socket.connect();
+
+            socket.on(Socket.EVENT_CONNECT, args -> {
+                Log.d("Socket", "Connected to server");
+            });
+
+            socket.on(Socket.EVENT_DISCONNECT, args -> {
+                Log.d("Socket", "Disconnected from server");
+            });
+
+            socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
+                Log.e("Socket", "Connection error: " + args[0]);
+            });
+
+            socket.on("connect_timeout", args -> {
+                Log.e("Socket", "Connection timed out");
+            });
+
+            // Khi kết nối thành công
+            socket.on(Socket.EVENT_CONNECT, args -> runOnUiThread(() -> {
+                binding.status.setText("Status: Connected");
+            }));
 
             //Receive Humidity data from Raspberry
             socket.on("soil_moisture_data", args -> {
