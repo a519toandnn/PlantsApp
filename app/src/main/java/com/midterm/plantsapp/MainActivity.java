@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private Socket socket;
     private ActivityMainBinding binding;
     private static final String CHANNEL_ID = "Humidity Alert";
-    private static final String SERVER_URL = "http://192.168.0.1:5000";
+    private static final String SERVER_URL = "http://172.20.10.3:5000";
     private boolean isPumpOn = false;
     private WaveView waveView;
     private TextView moisturePercentage;
@@ -89,8 +89,8 @@ public class MainActivity extends AppCompatActivity {
                     throw new RuntimeException(e);
                 }
                 binding.moisturePercentage.setText(moisture + "%");
-                if (moisture < 40) {
-                    sendNotification("Độ ẩm hiện tại: " + moisture + "%");
+                if (moisture < 40 || moisture > 70) {
+                    sendNotification(moisture + "%");
                 }
             });
 
