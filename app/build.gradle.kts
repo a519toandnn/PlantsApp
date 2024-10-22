@@ -40,9 +40,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.socket.io.client) //socketIO
-    implementation(libs.gson) //Json
-    implementation(libs.okhttp) //OkHttp
+    implementation(libs.socket.io.client)
+    implementation(libs.gson)
+    implementation(libs.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -8,20 +8,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 public class BackgroundService extends Service {
 

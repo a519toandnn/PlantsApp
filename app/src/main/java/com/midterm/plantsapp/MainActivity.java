@@ -1,29 +1,31 @@
 package com.midterm.plantsapp;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.app.NotificationCompat;
-import com.midterm.plantsapp.databinding.ActivityMainBinding;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
+import com.midterm.plantsapp.databinding.ActivityMainBinding;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.net.URISyntaxException;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         createNotificationChannel();
-        requestNotificationPermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission();
+        }
 
         binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
             @Override
