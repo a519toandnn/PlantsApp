@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -34,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String CHANNEL_ID = "Humidity Alert";
     private static final String SERVER_URL = "http://192.168.0.1:5000";
     private boolean isPumpOn = false;
+    private WaveView waveView;
+    private TextView moisturePercentage;
+    ActionBar actionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +64,17 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        waveView = findViewById(R.id.waveView);
+        moisturePercentage = findViewById(R.id.moisture_percentage);
+
+        // Lấy giá trị phần trăm từ TextView
+        String percentageText = moisturePercentage.getText().toString().replace("%", "");
+        int percentage = Integer.parseInt(percentageText);
+
+        // Cập nhật phần trăm cho WaveView
+        waveView.setPercentage(percentage);
+
         try {
             socket = IO.socket(SERVER_URL);
             socket.connect();

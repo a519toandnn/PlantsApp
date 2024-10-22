@@ -16,16 +16,28 @@
         android:textColor="#14aeeb"
         />
 
-    <TextView
-        android:id="@+id/moisture_percentage"
+    <FrameLayout
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:layout_marginTop="32dp"
-        android:gravity="center"
-        android:background="@drawable/circular_background"
-        android:text="70%"
-        android:textSize="48sp"
-        android:textColor="#15ea71" />
+        android:clipChildren="true"
+        android:clipToPadding="true">
+
+        <com.midterm.plantsapp.WaveView
+            android:id="@+id/waveView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/moisture_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="70%"
+            android:textSize="48sp"
+            android:textColor="#000000" />
+    </FrameLayout>
+
 
     <TextView
         android:id="@+id/last_updated"

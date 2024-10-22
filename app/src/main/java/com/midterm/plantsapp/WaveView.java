@@ -6,11 +6,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
-public class    WaveView extends View {
+public class WaveView extends View {
     private Paint wavePaint;
     private Path wavePath;
     private int percentage = 0;  // Phần trăm độ ẩm
@@ -25,7 +24,7 @@ public class    WaveView extends View {
         wavePaint = new Paint();
         wavePaint.setColor(0xFF15EA71);  // Màu sóng
         wavePaint.setStyle(Paint.Style.FILL);
-        wavePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN)); // Vẽ sóng chỉ bên trong hình tròn
+        wavePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));  // Vẽ sóng chỉ bên trong hình tròn
         wavePath = new Path();
 
         // Tạo một Runnable để làm sóng di chuyển
@@ -59,9 +58,16 @@ public class    WaveView extends View {
         float waveHeight = height * (1 - percentage / 100f);  // Chiều cao sóng dựa vào phần trăm
 
         // Tạo một hình tròn để cắt sóng
-        RectF rectF = new RectF(0, 0, width, height);
+        float radius = Math.min(width, height) / 2;  // Bán kính của hình tròn
+        float centerX = width / 2;
+        float centerY = height / 2;
+
+        // Tạo path cho hình tròn
+        Path circlePath = new Path();
+        circlePath.addCircle(centerX, centerY, radius, Path.Direction.CCW);
+
         canvas.save();
-        canvas.clipRect(rectF); // Chỉ cho phép vẽ trong khu vực của hình tròn
+        canvas.clipPath(circlePath);  // Chỉ cho phép vẽ trong khu vực của hình tròn
 
         // Vẽ sóng
         wavePath.reset();
