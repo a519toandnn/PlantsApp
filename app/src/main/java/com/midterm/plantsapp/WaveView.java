@@ -22,7 +22,6 @@ public class WaveView extends View {
 
     private void init() {
         wavePaint = new Paint();
-        wavePaint.setColor(0xFF15EA71);  // Màu sóng
         wavePaint.setStyle(Paint.Style.FILL);
         wavePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));  // Vẽ sóng chỉ bên trong hình tròn
         wavePath = new Path();
@@ -33,7 +32,7 @@ public class WaveView extends View {
 
     public void setPercentage(int percentage) {
         this.percentage = percentage;
-        invalidate();
+        invalidate();  // Vẽ lại khi cập nhật phần trăm
     }
 
     // Runnable để cập nhật vị trí của sóng
@@ -56,6 +55,21 @@ public class WaveView extends View {
         float height = getHeight();
         float width = getWidth();
         float waveHeight = height * (1 - percentage / 100f);  // Chiều cao sóng dựa vào phần trăm
+
+        // Cập nhật màu sóng dựa trên giá trị phần trăm
+        if (percentage > 90) {
+            wavePaint.setColor(0xFFFF0000); // Màu đỏ
+        }
+        else if(percentage > 70){
+            wavePaint.setColor(0xFFFFD700); // Màu vàng
+        }
+        else if(percentage >= 60){
+            wavePaint.setColor(0xFF15EA71); // Màu xanh
+        } else if (percentage > 20) {
+            wavePaint.setColor(0xFFFFD700); // Màu vàng
+        } else {
+            wavePaint.setColor(0xFFFF0000); // Màu đỏ
+        }
 
         // Tạo một hình tròn để cắt sóng
         float radius = Math.min(width, height) / 2;  // Bán kính của hình tròn
