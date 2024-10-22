@@ -3,8 +3,11 @@ package com.midterm.plantsapp;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +15,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -25,20 +27,18 @@ import com.midterm.plantsapp.databinding.ActivityMainBinding;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URISyntaxException;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Socket socket;
-    private ActivityMainBinding binding;
     private static final String CHANNEL_ID = "Humidity Alert";
-    private static final String SERVER_URL = "http://192.168.137.205:5000";
-    private boolean isPumpOn = false;
-    private WaveView waveView;
+    private static final String SERVER_URL = "http://192.168.2.103:5000";
+    private ActivityMainBinding binding;
     private TextView moisturePercentage;
+    private WaveView waveView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +51,17 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        if (isNetworkAvailable(this)) {
+            Log.d("Network Status", "Kết nối mạng có sẵn.");
+            if (isInternetAvailable()) {
+                Log.d("Network Status", "Có thể kết nối đến Internet.");
+            } else {
+                Log.e("Network Status", "Kết nối mạng có sẵn nhưng không thể kết nối đến Internet.");
+            }
+        } else {
+            Log.e("Network Status", "Không có kết nối mạng.");
+        }
 
         createNotificationChannel();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -65,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        moisturePercentage = findViewById(R.id.moisture_percentage);
         waveView = findViewById(R.id.waveView);
         moisturePercentage = findViewById(R.id.moisture_percentage);
 
@@ -75,79 +87,85 @@ public class MainActivity extends AppCompatActivity {
         // Cập nhật phần trăm cho WaveView
         waveView.setPercentage(percentage);
 
-        try {
-            socket = IO.socket(SERVER_URL);
-            socket.connect();
-
-            socket.on(Socket.EVENT_CONNECT, args -> {
-                Log.d("Socket", "Connected to server");
-            });
-
-            socket.on(Socket.EVENT_DISCONNECT, args -> {
-                Log.d("Socket", "Disconnected from server");
-            });
-
-            socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
-                Log.e("Socket", "Connection error: " + args[0]);
-            });
-
-            socket.on("connect_timeout", args -> {
-                Log.e("Socket", "Connection timed out");
-            });
-
-            // Khi kết nối thành công
-            socket.on(Socket.EVENT_CONNECT, args -> runOnUiThread(() -> {
-                binding.status.setText("Status: Connected");
-            }));
-
-            //Receive Humidity data from Raspberry
-            socket.on("soil_moisture_data", args -> {
-                JSONObject data = (JSONObject) args[0];
-                int moisture = 0;
-                try {
-                    moisture = data.getInt("moisture");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-                binding.moisturePercentage.setText(moisture + "%");
-                if (moisture < 40 || moisture > 70) {
-                    sendNotification(moisture + "%");
-                }
-            });
-
-            socket.on("pump_status", args -> {
-                JSONObject data = (JSONObject) args[0];
-                try {
-                    isPumpOn = data.getBoolean("pump_status");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
-        binding.waterPumpSwitch.setOnClickListener(v -> togglePump());
+        // Bắt đầu nhận dữ liệu độ ẩm từ server
+        new Thread(this::receiveSoilMoistureData).start();
     }
 
-    private void togglePump() {
-        isPumpOn = !isPumpOn;
-        new Thread(() -> {
-            try {
-                JSONObject json = new JSONObject();
-                json.put("pump_status", isPumpOn);
-                socket.emit("control_pump", json);
-            } catch (Exception e) {
-                e.printStackTrace();
+    public boolean isInternetAvailable() {
+        try {
+            HttpURLConnection urlConnection = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
+            urlConnection.setRequestProperty("User-Agent", "test");
+            urlConnection.setRequestProperty("Connection", "close");
+            urlConnection.setConnectTimeout(3000); // 3 giây
+            urlConnection.connect();
+            return (urlConnection.getResponseCode() == 200);
+        } catch (Exception e) {
+            Log.e("Internet Check", "Error checking internet availability: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void receiveSoilMoistureData() {
+
+        try {
+            URL url = new URL(SERVER_URL + "/soil_moisture_events");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "text/event-stream");
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                Log.d("Connection Status", "Kết nối đến server thành công.");
+                binding.connectionStatus.setText("Status: Connected");
+            } else {
+                Log.e("Connection Status", "Kết nối đến server thất bại với mã: " + responseCode);
             }
-        }).start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("data: ")) {
+                    String jsonData = line.substring(6);
+                    Log.d("SSE Data", jsonData);
+                    runOnUiThread(() -> updateMoisture(jsonData));
+                }
+            }
+        } catch (Exception e) {
+            Log.e("Error", "Error receiving soil moisture data: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    private void updateMoisture(String jsonData) {
+        try {
+            // Phân tích dữ liệu JSON
+            JSONObject jsonObject = new JSONObject(jsonData);
+            int moisture = jsonObject.getInt("moisture");
+            moisturePercentage.setText(moisture + "%");
+            waveView.setPercentage(moisture);
+
+            // Gửi thông báo nếu độ ẩm nằm ngoài khoảng cho phép
+            if (moisture < 40 || moisture > 70) {
+                sendNotification("Độ ẩm hiện tại: " + moisture + "%");
+            }
+        } catch (JSONException e) {
+            Log.e("Error", "Error parsing JSON data: " + e.getMessage());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    private void requestNotificationPermission() { //Request Notification Perm
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) { //Check Application has Notification Perm Or Not
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1); //If not, request it
+    private void requestNotificationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
     }
 
@@ -156,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.circular_background) //thêm icon của app vào sau
+                .setSmallIcon(R.drawable.circular_background)
                 .setContentTitle("Cảnh báo độ ẩm đất")
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -177,5 +195,4 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
-    
 }

@@ -40,7 +40,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.socket.io.client)
+    implementation("io.socket:socket.io-client:2.1.1")
     implementation(libs.gson)
     implementation(libs.okhttp)
     testImplementation(libs.junit)
