@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 //            requestLocationPermissions();
 //        }
         requestPermissions();
+        binding.waveView.setPercentage(70);
         binding.btnPlantsDisease.setOnClickListener(view1 -> {
             Intent intent = new Intent(MainActivity.this, PlantsDiseases.class);
             startActivity(intent);
@@ -93,14 +94,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
-        for (String permission : PERMISSIONS) {
-            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsNeeded.add(permission);
+
+        // Kiểm tra quyền thông báo (chỉ yêu cầu nếu API >= 33)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        // Kiểm tra quyền vị trí chính xác và vị trí chung (chỉ yêu cầu nếu API >= 23)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION);
             }
         }
 
         if (!permissionsNeeded.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), 1);
+            try {
+                ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), 1);
+            } catch (Exception e) {
+                Log.e("Permission Request", "Error requesting permissions: " + e.getMessage());
+            }
         }
     }
 
