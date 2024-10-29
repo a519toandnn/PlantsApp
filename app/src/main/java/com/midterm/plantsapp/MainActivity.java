@@ -1,5 +1,6 @@
 package com.midterm.plantsapp;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -27,18 +28,24 @@ import com.midterm.plantsapp.databinding.ActivityMainBinding;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String CHANNEL_ID = "Humidity Alert";
-    private static final String SERVER_URL = "http://192.168.2.103:5000";
+    private static final String SERVER_URL = "http://192.168.2.103:5000"; // Thay đổi IP nếu cần
     private ActivityMainBinding binding;
-    private TextView moisturePercentage;
-    private WaveView waveView;
+    private Socket socket;
+    private static final String[] PERMISSIONS = {
+            Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,122 +59,124 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        checkNetworkStatus();
+
+        createNotificationChannel();
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            requestNotificationPermission();
+//        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            requestLocationPermissions();
+//        }
+        requestPermissions();
+        binding.waveView.setPercentage(70);
+        binding.btnPlantsDisease.setOnClickListener(view1 -> {
+            Intent intent = new Intent(MainActivity.this, PlantsDiseases.class);
+            startActivity(intent);
+        });
+
+
+        // Kết nối đến Socket.IO server
+        try {
+            connectSocketIO();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkNetworkStatus() {
         if (isNetworkAvailable(this)) {
             Log.d("Network Status", "Kết nối mạng có sẵn.");
-            if (isInternetAvailable()) {
-                Log.d("Network Status", "Có thể kết nối đến Internet.");
-            } else {
-                Log.e("Network Status", "Kết nối mạng có sẵn nhưng không thể kết nối đến Internet.");
-            }
         } else {
             Log.e("Network Status", "Không có kết nối mạng.");
         }
+    }
 
-        createNotificationChannel();
+    private void requestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        // Kiểm tra quyền thông báo (chỉ yêu cầu nếu API >= 33)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestNotificationPermission();
-        }
-
-        binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, PlantsDiseases.class);
-                startActivity(intent);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
             }
-        });
+        }
 
-        moisturePercentage = findViewById(R.id.moisture_percentage);
-        waveView = findViewById(R.id.waveView);
-        moisturePercentage = findViewById(R.id.moisture_percentage);
+        // Kiểm tra quyền vị trí chính xác và vị trí chung (chỉ yêu cầu nếu API >= 23)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+            }
+        }
 
-        // Lấy giá trị phần trăm từ TextView
-        String percentageText = moisturePercentage.getText().toString().replace("%", "");
-        int percentage = Integer.parseInt(percentageText);
-
-        // Cập nhật phần trăm cho WaveView
-        waveView.setPercentage(percentage);
-
-        // Bắt đầu nhận dữ liệu độ ẩm từ server
-        new Thread(this::receiveSoilMoistureData).start();
-    }
-
-    public boolean isInternetAvailable() {
-        try {
-            HttpURLConnection urlConnection = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
-            urlConnection.setRequestProperty("User-Agent", "test");
-            urlConnection.setRequestProperty("Connection", "close");
-            urlConnection.setConnectTimeout(3000); // 3 giây
-            urlConnection.connect();
-            return (urlConnection.getResponseCode() == 200);
-        } catch (Exception e) {
-            Log.e("Internet Check", "Error checking internet availability: " + e.getMessage());
-            return false;
+        if (!permissionsNeeded.isEmpty()) {
+            try {
+                ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), 1);
+            } catch (Exception e) {
+                Log.e("Permission Request", "Error requesting permissions: " + e.getMessage());
+            }
         }
     }
 
-
-    public boolean isNetworkAvailable(Context context) {
+    private boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    private void receiveSoilMoistureData() {
+    private void connectSocketIO() throws URISyntaxException {
+        socket = IO.socket(SERVER_URL);
 
-        try {
-            URL url = new URL(SERVER_URL + "/soil_moisture_events");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Accept", "text/event-stream");
-            connection.connect();
+        // Kết nối thành công
+        socket.on(Socket.EVENT_CONNECT, args -> {
+            Log.d("SocketIO", "Kết nối thành công với server");
+            runOnUiThread(() -> binding.connectionStatus.setText("Status: Connected"));
+        });
 
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                Log.d("Connection Status", "Kết nối đến server thành công.");
-                binding.connectionStatus.setText("Status: Connected");
-            } else {
-                Log.e("Connection Status", "Kết nối đến server thất bại với mã: " + responseCode);
-            }
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data: ")) {
-                    String jsonData = line.substring(6);
-                    Log.d("SSE Data", jsonData);
-                    runOnUiThread(() -> updateMoisture(jsonData));
+        // Nhận dữ liệu độ ẩm từ server
+        socket.on("soil_moisture_data", args -> {
+            JSONObject data = (JSONObject) args[0];
+            try {
+                int moisture = data.getInt("moisture");
+                if (moisture < 40 || moisture > 70) {
+                    sendNotification("Độ ẩm hiện tại: " + moisture + "%");
                 }
+                runOnUiThread(() -> updateMoisture(moisture));
+            } catch (JSONException e) {
+                Log.e("Error", "Error parsing JSON data: " + e.getMessage());
             }
-        } catch (Exception e) {
-            Log.e("Error", "Error receiving soil moisture data: " + e.getMessage());
-            e.printStackTrace();
-        }
+        });
+
+        // Kết nối socket
+        socket.connect();
     }
 
-
-    private void updateMoisture(String jsonData) {
-        try {
-            // Phân tích dữ liệu JSON
-            JSONObject jsonObject = new JSONObject(jsonData);
-            int moisture = jsonObject.getInt("moisture");
-            moisturePercentage.setText(moisture + "%");
-            waveView.setPercentage(moisture);
-
-            // Gửi thông báo nếu độ ẩm nằm ngoài khoảng cho phép
-            if (moisture < 40 || moisture > 70) {
-                sendNotification("Độ ẩm hiện tại: " + moisture + "%");
-            }
-        } catch (JSONException e) {
-            Log.e("Error", "Error parsing JSON data: " + e.getMessage());
-        }
+    private void updateMoisture(int moisture) {
+        binding.moisturePercentage.setText(moisture + "%");
+        binding.waveView.setPercentage(moisture);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    private void requestNotificationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
-        }
-    }
+//    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+//    private void requestNotificationPermission() {
+//        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+//        }
+//    }
+//
+//    @RequiresApi(api = Build.VERSION_CODES.M)
+//    private void requestLocationPermissions() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+//                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            // Quyền chưa được cấp, yêu cầu quyền
+//            ActivityCompat.requestPermissions(this, new String[]{
+//                    Manifest.permission.ACCESS_FINE_LOCATION,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//            }, 1);
+//        }
+//    }
 
     private void sendNotification(String message) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -193,6 +202,14 @@ public class MainActivity extends AppCompatActivity {
             channel.setDescription(description);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (socket != null) {
+            socket.disconnect();
         }
     }
 }
