@@ -1,51 +1,31 @@
 package com.midterm.plantsapp;
 
-import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.midterm.plantsapp.databinding.ActivityMainBinding;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String CHANNEL_ID = "Humidity Alert";
-    private static final String SERVER_URL = "http://192.168.2.103:5000"; // Thay đổi IP nếu cần
     private ActivityMainBinding binding;
-    private Socket socket;
-    private static final String[] PERMISSIONS = {
-            Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-    };
+    private DatabaseReference sensorDataRef;
+    private DatabaseReference pumpStateRef;
+    private boolean isPumpOn = false;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,163 +33,101 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        checkNetworkStatus();
+        FirebaseMessaging.getInstance().subscribeToTopic("humidity_alerts")
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("FCM", "Đăng ký topic thành công!");
+                    } else {
+                        Log.d("FCM", "Đăng ký topic thất bại!");
+                    }
+                });
 
-        createNotificationChannel();
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            requestNotificationPermission();
-//        }
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            requestLocationPermissions();
-//        }
-        requestPermissions();
-        binding.waveView.setPercentage(70);
-        binding.btnPlantsDisease.setOnClickListener(view1 -> {
-            Intent intent = new Intent(MainActivity.this, PlantsDiseases.class);
-            startActivity(intent);
-        });
+        sensorDataRef = FirebaseDatabase.getInstance("https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                                        .getReference("sensor_data");
+        pumpStateRef = FirebaseDatabase.getInstance("https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                                        .getReference("pump_state");
 
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
 
-        // Kết nối đến Socket.IO server
-        try {
-            connectSocketIO();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
+                    // Lấy token
+                    String token = task.getResult();
+                    Log.d(TAG, "FCM Token: " + token);
+                    // Bạn có thể gửi token này đến server hoặc lưu vào SharedPreferences
+                });
 
-    private void checkNetworkStatus() {
-        if (isNetworkAvailable(this)) {
-            Log.d("Network Status", "Kết nối mạng có sẵn.");
-        } else {
-            Log.e("Network Status", "Không có kết nối mạng.");
-        }
-    }
-
-    private void requestPermissions() {
-        List<String> permissionsNeeded = new ArrayList<>();
-
-        // Kiểm tra quyền thông báo (chỉ yêu cầu nếu API >= 33)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
-            }
-        }
-
-        // Kiểm tra quyền vị trí chính xác và vị trí chung (chỉ yêu cầu nếu API >= 23)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
-            }
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                permissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-            }
-        }
-
-        if (!permissionsNeeded.isEmpty()) {
-            try {
-                ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), 1);
-            } catch (Exception e) {
-                Log.e("Permission Request", "Error requesting permissions: " + e.getMessage());
-            }
-        }
-    }
-
-    private boolean isNetworkAvailable(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
-    private void connectSocketIO() throws URISyntaxException {
-        socket = IO.socket(SERVER_URL);
-
-        // Kết nối thành công
-        socket.on(Socket.EVENT_CONNECT, args -> {
-            Log.d("SocketIO", "Kết nối thành công với server");
-            runOnUiThread(() -> binding.connectionStatus.setText("Status: Connected"));
-        });
-
-        // Nhận dữ liệu độ ẩm từ server
-        socket.on("soil_moisture_data", args -> {
-            JSONObject data = (JSONObject) args[0];
-            try {
-                int moisture = data.getInt("moisture");
-                if (moisture < 40 || moisture > 70) {
-                    sendNotification("Độ ẩm hiện tại: " + moisture + "%");
+        // Lắng nghe thay đổi dữ liệu độ ẩm
+        sensorDataRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() && dataSnapshot.hasChild("humidity")) {
+                    Integer humidity = dataSnapshot.child("humidity").getValue(Integer.class);
+                    if (humidity != null) { // Kiểm tra nếu độ ẩm không null
+                        binding.moisturePercentage.setText(humidity + "%");
+                        binding.waveView.setPercentage(humidity);
+                    } else {
+                        Log.w("MainActivity", "Humidity value is null");
+                    }
+                } else {
+                    Log.w("MainActivity", "No data available or 'humidity' field does not exist.");
                 }
-                runOnUiThread(() -> updateMoisture(moisture));
-            } catch (JSONException e) {
-                Log.e("Error", "Error parsing JSON data: " + e.getMessage());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("MainActivity", "Failed to read value.", databaseError.toException());
             }
         });
 
-        // Kết nối socket
-        socket.connect();
+        // Lắng nghe trạng thái máy bơm từ Firebase để cập nhật nút bật/tắt
+        pumpStateRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String state = dataSnapshot.getValue(String.class);
+                    isPumpOn = "ON".equals(state);
+                    updatePumpButtonText();
+                } else {
+                    Log.w("MainActivity", "No pump state data available.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("MainActivity", "Failed to read pump state.", databaseError.toException());
+            }
+        });
+
+        // Chuyển đổi trạng thái máy bơm khi nhấn nút
+        binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
     }
 
-    private void updateMoisture(int moisture) {
-        binding.moisturePercentage.setText(moisture + "%");
-        binding.waveView.setPercentage(moisture);
+    private void togglePumpState() {
+        String newState = isPumpOn ? "OFF" : "ON";
+        pumpStateRef.setValue(newState).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String message = newState.equals("ON") ? "Máy bơm đã bật" : "Máy bơm đã tắt";
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                isPumpOn = !isPumpOn;
+                updatePumpButtonText();
+            } else {
+                Toast.makeText(MainActivity.this, "Lỗi khi cập nhật trạng thái máy bơm", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-//    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-//    private void requestNotificationPermission() {
-//        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
-//        }
-//    }
-//
-//    @RequiresApi(api = Build.VERSION_CODES.M)
-//    private void requestLocationPermissions() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-//                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            // Quyền chưa được cấp, yêu cầu quyền
-//            ActivityCompat.requestPermissions(this, new String[]{
-//                    Manifest.permission.ACCESS_FINE_LOCATION,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION
-//            }, 1);
-//        }
-//    }
-
-    private void sendNotification(String message) {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.circular_background)
-                .setContentTitle("Cảnh báo độ ẩm đất")
-                .setContentText(message)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setDefaults(Notification.DEFAULT_ALL);
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String name = "Humidity Alerts";
-            String description = "Channel for humidity alerts";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (socket != null) {
-            socket.disconnect();
-        }
+    private void updatePumpButtonText() {
+        binding.waterPumpSwitch.setText(isPumpOn ? "Tắt máy bơm" : "Bật máy bơm");
     }
 }
