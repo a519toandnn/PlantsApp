@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference pumpStateRef;
     private boolean isPumpOn = false;
     private static final String TAG = "MainActivity";
+    private String databaseURL = "https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,18 +41,9 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        FirebaseMessaging.getInstance().subscribeToTopic("humidity_alerts")
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("FCM", "Đăng ký topic thành công!");
-                    } else {
-                        Log.d("FCM", "Đăng ký topic thất bại!");
-                    }
-                });
-
-        sensorDataRef = FirebaseDatabase.getInstance("https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/")
+        sensorDataRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("sensor_data");
-        pumpStateRef = FirebaseDatabase.getInstance("https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/")
+        pumpStateRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("pump_state");
 
         FirebaseMessaging.getInstance().getToken()
@@ -61,10 +53,10 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // Lấy token
                     String token = task.getResult();
-                    Log.d(TAG, "FCM Token: " + token);
-                    // Bạn có thể gửi token này đến server hoặc lưu vào SharedPreferences
+
+                    DatabaseReference ref = FirebaseDatabase.getInstance(databaseURL).getReference("device_token");
+                    ref.setValue(token);
                 });
 
         // Lắng nghe thay đổi dữ liệu độ ẩm
@@ -119,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String message = newState.equals("ON") ? "Máy bơm đã bật" : "Máy bơm đã tắt";
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                isPumpOn = !isPumpOn;
                 updatePumpButtonText();
+                isPumpOn = (newState.equals("ON") ? true : false);
             } else {
                 Toast.makeText(MainActivity.this, "Lỗi khi cập nhật trạng thái máy bơm", Toast.LENGTH_SHORT).show();
             }
