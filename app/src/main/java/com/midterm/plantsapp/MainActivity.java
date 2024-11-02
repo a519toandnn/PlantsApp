@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.w("MainActivity", "Failed to read value.", databaseError.toException());
+                Log.w("MainActivity", "Failed to read value from database.", databaseError.toException());
             }
         });
 
