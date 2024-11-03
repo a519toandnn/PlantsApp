@@ -61,19 +61,6 @@ public class MainActivity extends AppCompatActivity {
                                         .getReference("pump_state");
         tokenRef = FirebaseDatabase.getInstance(databaseURL).getReference("device_tokens");
 
-//        FirebaseMessaging.getInstance().getToken()
-//                .addOnCompleteListener(task -> {
-//                    if (!task.isSuccessful()) {
-//                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-//                        return;
-//                    }
-//
-//                    String token = task.getResult();
-//
-//                    DatabaseReference ref = FirebaseDatabase.getInstance(databaseURL).getReference("device_token");
-//                    ref.setValue(token);
-//                });
-
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
@@ -108,13 +95,13 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
-        // Lắng nghe thay đổi dữ liệu độ ẩm
+        // Get humidity from Realtime Database
         sensorDataRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && dataSnapshot.hasChild("humidity")) {
                     Integer humidity = dataSnapshot.child("humidity").getValue(Integer.class);
-                    if (humidity != null) { // Kiểm tra nếu độ ẩm không null
+                    if (humidity != null) {
                         binding.moisturePercentage.setText(humidity + "%");
                         binding.waveView.setPercentage(humidity);
                     } else {
@@ -131,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Lắng nghe trạng thái máy bơm từ Firebase để cập nhật nút bật/tắt
+        // Get pump status from Realtime Database
         pumpStateRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -150,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Chuyển đổi trạng thái máy bơm khi nhấn nút
+        // Turn on/off pump
         binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
         binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,33 +151,30 @@ public class MainActivity extends AppCompatActivity {
     private void checkNotificationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-            // Nếu quyền chưa được cấp, yêu cầu quyền
+            // Request Permission if it is not granted
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.POST_NOTIFICATIONS},
                     NOTIFICATION_PERMISSION_CODE);
         } else {
-            // Quyền đã được cấp, bạn có thể thực hiện hành động liên quan đến notification
             Log.d(TAG, "Notification permission already granted.");
         }
     }
 
-    // Xử lý kết quả yêu cầu quyền
+    // Get result of request
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == NOTIFICATION_PERMISSION_CODE && grantResults.length > 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Notification permission granted.");
-                // Thực hiện hành động liên quan đến notification
             } else {
                 Log.d(TAG, "Notification permission denied.");
                 Toast.makeText(this, "Bạn cần cấp quyền gửi thông báo để sử dụng tính năng cảnh báo!", Toast.LENGTH_LONG).show();
-                // Có thể hiển thị thông báo cho người dùng rằng quyền bị từ chối
             }
         }
     }
 
-
+    // Update pump status to Realtime Database
     private void togglePumpState() {
         String newState = isPumpOn ? "OFF" : "ON";
         pumpStateRef.setValue(newState).addOnCompleteListener(task -> {
@@ -205,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //Update waterPumpSwitch button's text
     private void updatePumpButtonText() {
         binding.waterPumpSwitch.setText(isPumpOn ? "Tắt máy bơm" : "Bật máy bơm");
     }
