@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int NOTIFICATION_PERMISSION_CODE = 1;
     private ActivityMainBinding binding;
-    private DatabaseReference sensorDataRef;
+    private DatabaseReference moistureRef;
     private DatabaseReference pumpStateRef;
     private DatabaseReference tokenRef;
     private boolean isPumpOn = false;
@@ -55,12 +55,13 @@ public class MainActivity extends AppCompatActivity {
             checkNotificationPermission();
         }
 
-        sensorDataRef = FirebaseDatabase.getInstance(databaseURL)
-                                        .getReference("sensor_data");
+        moistureRef = FirebaseDatabase.getInstance(databaseURL)
+                                        .getReference("moisture");
         pumpStateRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("pump_state");
         tokenRef = FirebaseDatabase.getInstance(databaseURL).getReference("device_tokens");
 
+        // Get token of Device
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     tokenRef.orderByValue().equalTo(device_token).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (!snapshot.exists()) {
+                            if (!snapshot.exists()) { // device_token is not exist in Realtime Database
 
                                 String tokenKey = UUID.randomUUID().toString();
                                 tokenRef.child(tokenKey).setValue(device_token);
@@ -95,20 +96,20 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
-        // Get humidity from Realtime Database
-        sensorDataRef.addValueEventListener(new ValueEventListener() {
+        // Get moisture from Realtime Database
+        moistureRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.hasChild("humidity")) {
-                    Integer humidity = dataSnapshot.child("humidity").getValue(Integer.class);
-                    if (humidity != null) {
-                        binding.moisturePercentage.setText(humidity + "%");
-                        binding.waveView.setPercentage(humidity);
+                if (dataSnapshot.exists()) {
+                    Integer moisture = dataSnapshot.getValue(Integer.class);
+                    if (moisture != null) {
+                        binding.moisturePercentage.setText(moisture + "%");
+                        binding.waveView.setPercentage(moisture);
                     } else {
-                        Log.w("MainActivity", "Humidity value is null");
+                        Log.w("MainActivity", "Moisture value is null");
                     }
                 } else {
-                    Log.w("MainActivity", "No data available or 'humidity' field does not exist.");
+                    Log.w("MainActivity", "No data available or 'moisture' field does not exist.");
                 }
             }
 
@@ -139,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Turn on/off pump
         binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
+
+        // Change to Plants Diseases Screen
         binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -148,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Check Notification Permission
     private void checkNotificationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
