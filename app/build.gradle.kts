@@ -46,6 +46,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.github.bumptech.glide:glide:4.15.0")
     implementation(libs.gson)
     implementation(libs.okhttp)
     testImplementation(libs.junit)
