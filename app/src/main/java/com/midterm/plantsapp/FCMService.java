@@ -25,6 +25,7 @@ public class FCMService extends FirebaseMessagingService {
         createNotificationChannel();
     }
 
+    //Get notification from Firebase Cloud Messaging
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         if (remoteMessage.getNotification() != null) {
@@ -36,7 +37,7 @@ public class FCMService extends FirebaseMessagingService {
 
     private void showNotification(String title, String message) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.baseline_warning_24) // Đổi thành icon của bạn
+                .setSmallIcon(R.drawable.baseline_warning_24)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

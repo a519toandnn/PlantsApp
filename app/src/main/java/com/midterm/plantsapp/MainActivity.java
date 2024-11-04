@@ -1,12 +1,18 @@
 package com.midterm.plantsapp;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import android.Manifest;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,11 +25,15 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.midterm.plantsapp.databinding.ActivityMainBinding;
 
+import java.util.UUID;
+
 public class MainActivity extends AppCompatActivity {
 
+    private static final int NOTIFICATION_PERMISSION_CODE = 1;
     private ActivityMainBinding binding;
-    private DatabaseReference sensorDataRef;
+    private DatabaseReference moistureRef;
     private DatabaseReference pumpStateRef;
+    private DatabaseReference tokenRef;
     private boolean isPumpOn = false;
     private static final String TAG = "MainActivity";
     private String databaseURL = "https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/";
@@ -41,11 +51,17 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        sensorDataRef = FirebaseDatabase.getInstance(databaseURL)
-                                        .getReference("sensor_data");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkNotificationPermission();
+        }
+
+        moistureRef = FirebaseDatabase.getInstance(databaseURL)
+                                        .getReference("moisture");
         pumpStateRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("pump_state");
+        tokenRef = FirebaseDatabase.getInstance(databaseURL).getReference("device_tokens");
 
+        // Get token of Device
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
@@ -53,26 +69,47 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    String token = task.getResult();
+                    // Get token of device
+                    String device_token = task.getResult();
 
-                    DatabaseReference ref = FirebaseDatabase.getInstance(databaseURL).getReference("device_token");
-                    ref.setValue(token);
+                    tokenRef.orderByValue().equalTo(device_token).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (!snapshot.exists()) { // device_token is not exist in Realtime Database
+
+                                String tokenKey = UUID.randomUUID().toString();
+                                tokenRef.child(tokenKey).setValue(device_token);
+                                Log.d(TAG, "Token saved with key: " + tokenKey);
+
+                            }
+
+                            else {
+                                Log.d(TAG, "Token already exists in the database.");
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.w(TAG, "Failed to check token existence.", error.toException());
+                        }
+                    });
                 });
 
-        // Lắng nghe thay đổi dữ liệu độ ẩm
-        sensorDataRef.addValueEventListener(new ValueEventListener() {
+
+        // Get moisture from Realtime Database
+        moistureRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.hasChild("humidity")) {
-                    Integer humidity = dataSnapshot.child("humidity").getValue(Integer.class);
-                    if (humidity != null) { // Kiểm tra nếu độ ẩm không null
-                        binding.moisturePercentage.setText(humidity + "%");
-                        binding.waveView.setPercentage(humidity);
+                if (dataSnapshot.exists()) {
+                    Integer moisture = dataSnapshot.getValue(Integer.class);
+                    if (moisture != null) {
+                        binding.moisturePercentage.setText(moisture + "%");
+                        binding.waveView.setPercentage(moisture);
                     } else {
-                        Log.w("MainActivity", "Humidity value is null");
+                        Log.w("MainActivity", "Moisture value is null");
                     }
                 } else {
-                    Log.w("MainActivity", "No data available or 'humidity' field does not exist.");
+                    Log.w("MainActivity", "No data available or 'moisture' field does not exist.");
                 }
             }
 
@@ -82,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Lắng nghe trạng thái máy bơm từ Firebase để cập nhật nút bật/tắt
+        // Get pump status from Realtime Database
         pumpStateRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -101,10 +138,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Chuyển đổi trạng thái máy bơm khi nhấn nút
+        // Turn on/off pump
         binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
+
+        // Change to Plants Diseases Screen
+        binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, PlantsDiseases.class);
+                startActivity(intent);
+            }
+        });
     }
 
+    // Check Notification Permission
+    private void checkNotificationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Request Permission if it is not granted
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    NOTIFICATION_PERMISSION_CODE);
+        } else {
+            Log.d(TAG, "Notification permission already granted.");
+        }
+    }
+
+    // Get result of request
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_CODE && grantResults.length > 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Notification permission granted.");
+            } else {
+                Log.d(TAG, "Notification permission denied.");
+                Toast.makeText(this, "Bạn cần cấp quyền gửi thông báo để sử dụng tính năng cảnh báo!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    // Update pump status to Realtime Database
     private void togglePumpState() {
         String newState = isPumpOn ? "OFF" : "ON";
         pumpStateRef.setValue(newState).addOnCompleteListener(task -> {
@@ -119,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //Update waterPumpSwitch button's text
     private void updatePumpButtonText() {
         binding.waterPumpSwitch.setText(isPumpOn ? "Tắt máy bơm" : "Bật máy bơm");
     }
