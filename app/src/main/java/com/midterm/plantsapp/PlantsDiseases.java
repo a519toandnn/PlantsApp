@@ -20,7 +20,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import com.google.firebase.database.ValueEventListener;
 import com.midterm.plantsapp.databinding.ActivityPlantsDiseasesBinding;
+
+import java.util.Map;
 
 public class PlantsDiseases extends AppCompatActivity {
 
@@ -34,45 +37,51 @@ public class PlantsDiseases extends AppCompatActivity {
         binding = ActivityPlantsDiseasesBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.plants_diseases_main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         binding.btnBack.setOnClickListener(view1 -> finish());
 
         imageUrlRef = FirebaseDatabase.getInstance(databaseURL).getReference("image_urls");
 
-        imageUrlRef.addChildEventListener(new ChildEventListener() {
+        // Listen for changes in image_urls
+        imageUrlRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                String image_url = snapshot.getValue(String.class);
-                if (image_url != null) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String latestImageUrl = null;
+                long latestTimestamp = 0;
+
+                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                    Map<String, Object> data = (Map<String, Object>) childSnapshot.getValue();
+
+                    if (data != null) {
+                        String imageUrl = (String) data.get("url");
+                        long timestamp = Long.parseLong(data.get("timestamp").toString());
+
+                        if (timestamp > latestTimestamp) {
+                            latestTimestamp = timestamp;
+                            latestImageUrl = imageUrl;
+                        }
+                    }
+                }
+
+                if (latestImageUrl != null) {
                     Glide.with(PlantsDiseases.this)
-                            .load(image_url)
+                            .load(latestImageUrl)
                             .placeholder(R.drawable.default_image)
+                            .fitCenter()
+                            .override(300, 300)
                             .into(binding.plantImage);
                 }
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Handle any errors
             }
         });
     }

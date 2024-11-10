@@ -20,15 +20,15 @@
         android:layout_gravity="center"
         android:gravity="center">
 
-    <ImageView
-        android:id="@+id/plant_image"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_marginTop="32dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/default_image"/>
+        <ImageView
+            android:id="@+id/plant_image"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
+            android:layout_marginTop="32dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/default_image" />
 
-    <TextView
+        <TextView
         android:id="@+id/plant_disease_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
