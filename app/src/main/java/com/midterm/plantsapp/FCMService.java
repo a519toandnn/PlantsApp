@@ -51,8 +51,8 @@ public class FCMService extends FirebaseMessagingService {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Cảnh báo độ ẩm";
-            String description = "Kênh thông báo cho độ ẩm thấp/cao";
+            CharSequence name = "Cảnh báo";
+            String description = "Kênh thông báo của PlantsApp";
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);

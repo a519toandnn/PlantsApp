@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -54,6 +55,8 @@ public class PlantsDiseases extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String latestImageUrl = null;
                 long latestTimestamp = 0;
+                String latestPredictedClass = null;
+                String latestConfidenceValue = null;
 
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
                     Map<String, Object> data = (Map<String, Object>) childSnapshot.getValue();
@@ -61,21 +64,32 @@ public class PlantsDiseases extends AppCompatActivity {
                     if (data != null) {
                         String imageUrl = (String) data.get("url");
                         long timestamp = Long.parseLong(data.get("timestamp").toString());
+                        String predictedClass = (String) data.get("predicted_class");
+                        String confidenceValue = (String) data.get("confidence_value");
 
                         if (timestamp > latestTimestamp) {
                             latestTimestamp = timestamp;
                             latestImageUrl = imageUrl;
+                            latestPredictedClass = predictedClass;
+                            latestConfidenceValue = confidenceValue;
                         }
                     }
                 }
+                RequestOptions requestOptions = new RequestOptions()
+                        .fitCenter()
+                        .override(500, 500);
 
                 if (latestImageUrl != null) {
                     Glide.with(PlantsDiseases.this)
                             .load(latestImageUrl)
+                            .apply(requestOptions)
                             .placeholder(R.drawable.default_image)
-                            .fitCenter()
-                            .override(300, 300)
+                            .centerInside()
+                            .override(500, 500)
                             .into(binding.plantImage);
+
+                    binding.plantDiseaseInfo.setText(String.format("%s: %s", latestPredictedClass, latestConfidenceValue));
+
                 }
             }
 
