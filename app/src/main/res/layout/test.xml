@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -35,7 +33,7 @@
                     android:id="@+id/plant_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PlantsApp"
+                    android:text="Plant App"
                     android:textColor="@android:color/black"
                     android:textSize="30sp"
                     android:paddingBottom="5dp"
@@ -45,7 +43,7 @@
                     android:id="@+id/plant_species"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Keep your plants"
+                    android:text="Keep plants healthy"
                     android:textColor="@android:color/black"
                     android:textSize="20sp" />
 
