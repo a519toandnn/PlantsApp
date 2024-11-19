@@ -49,54 +49,84 @@ public class PlantsDiseases extends AppCompatActivity {
 
         imageUrlRef = FirebaseDatabase.getInstance(databaseURL).getReference("image_urls");
 
-        // Listen for changes in image_urls
-        imageUrlRef.addValueEventListener(new ValueEventListener() {
+        imageUrlRef.orderByChild("timestamp").limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String latestImageUrl = null;
-                long latestTimestamp = 0;
-                String latestPredictedClass = null;
-                String latestConfidenceValue = null;
-
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                    Map<String, Object> data = (Map<String, Object>) childSnapshot.getValue();
+                    String imageUrl = childSnapshot.child("url").getValue(String.class);
+                    String predictedClass = childSnapshot.child("predicted_class").getValue(String.class);
+                    String confidenceValue = childSnapshot.child("confidence_value").getValue(String.class);
 
-                    if (data != null) {
-                        String imageUrl = (String) data.get("url");
-                        long timestamp = Long.parseLong(data.get("timestamp").toString());
-                        String predictedClass = (String) data.get("predicted_class");
-                        String confidenceValue = (String) data.get("confidence_value");
+                    RequestOptions requestOptions = new RequestOptions()
+                            .fitCenter()
+                            .override(500, 500);
 
-                        if (timestamp > latestTimestamp) {
-                            latestTimestamp = timestamp;
-                            latestImageUrl = imageUrl;
-                            latestPredictedClass = predictedClass;
-                            latestConfidenceValue = confidenceValue;
-                        }
-                    }
-                }
-                RequestOptions requestOptions = new RequestOptions()
-                        .fitCenter()
-                        .override(500, 500);
-
-                if (latestImageUrl != null) {
                     Glide.with(PlantsDiseases.this)
-                            .load(latestImageUrl)
+                            .load(imageUrl)
                             .apply(requestOptions)
                             .placeholder(R.drawable.default_image)
                             .centerInside()
                             .override(500, 500)
                             .into(binding.plantImage);
 
-                    binding.plantDiseaseInfo.setText(String.format("%s: %s", latestPredictedClass, latestConfidenceValue));
-
+                    binding.plantDiseaseInfo.setText(String.format("%s: %s", predictedClass, confidenceValue));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle any errors
+                // Xử lý lỗi
             }
         });
+
+        // Listen for changes in image_urls
+//        imageUrlRef.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                String latestImageUrl = null;
+//                long latestTimestamp = 0;
+//                String latestPredictedClass = null;
+//                String latestConfidenceValue = null;
+//
+//                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+//                    Map<String, Object> data = (Map<String, Object>) childSnapshot.getValue();
+//
+//                    if (data != null) {
+//                        String imageUrl = (String) data.get("url");
+//                        long timestamp = Long.parseLong(data.get("timestamp").toString());
+//                        String predictedClass = (String) data.get("predicted_class");
+//                        String confidenceValue = (String) data.get("confidence_value");
+//
+//                        if (timestamp > latestTimestamp) {
+//                            latestTimestamp = timestamp;
+//                            latestImageUrl = imageUrl;
+//                            latestPredictedClass = predictedClass;
+//                            latestConfidenceValue = confidenceValue;
+//                        }
+//                    }
+//                }
+//                RequestOptions requestOptions = new RequestOptions()
+//                        .fitCenter()
+//                        .override(500, 500);
+//
+//                if (latestImageUrl != null) {
+//                    Glide.with(PlantsDiseases.this)
+//                            .load(latestImageUrl)
+//                            .apply(requestOptions)
+//                            .placeholder(R.drawable.default_image)
+//                            .centerInside()
+//                            .override(500, 500)
+//                            .into(binding.plantImage);
+//
+//                    binding.plantDiseaseInfo.setText(String.format("%s: %s", latestPredictedClass, latestConfidenceValue));
+//
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                // Handle any errors
+//            }
+//        });
     }
 }
