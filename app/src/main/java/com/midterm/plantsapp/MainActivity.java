@@ -2,10 +2,12 @@ package com.midterm.plantsapp;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 
@@ -105,6 +107,9 @@ public class MainActivity extends AppCompatActivity {
                     if (moisture != null) {
                         binding.moisturePercentage.setText(moisture + "%");
                         binding.waveView.setPercentage(moisture);
+
+                        // Cập nhật trạng thái cây
+                        updatePlantStatus(binding.plantStatus, moisture);
                     } else {
                         Log.w("MainActivity", "Moisture value is null");
                     }
@@ -112,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.w("MainActivity", "No data available or 'moisture' field does not exist.");
                 }
             }
+
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -195,6 +201,21 @@ public class MainActivity extends AppCompatActivity {
 
     //Update waterPumpSwitch button's text
     private void updatePumpButtonText() {
-        binding.waterPumpSwitch.setText(isPumpOn ? "Tắt máy bơm" : "Bật máy bơm");
+        binding.waterPumpSwitch.setText(isPumpOn ? "Pump on" : "Pump off");
     }
+
+    public void updatePlantStatus(TextView plantStatus, int moisturePercentage) {
+        if (moisturePercentage >= 60 && moisturePercentage <= 70) {
+            // Healthy case
+            plantStatus.setTextColor(Color.parseColor("#10EF64")); // Màu xanh lá
+            plantStatus.setBackgroundResource(R.drawable.shape_label); // Background "Healthy"
+            plantStatus.setText("Healthy");
+        } else {
+            // Warning case
+            plantStatus.setTextColor(Color.parseColor("#9c8c1f")); // Màu vàng nâu
+            plantStatus.setBackgroundResource(R.drawable.shape_warning_label); // Background "Warning"
+            plantStatus.setText("Warning");
+        }
+    }
+
 }
