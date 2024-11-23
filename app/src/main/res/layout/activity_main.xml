@@ -103,14 +103,29 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:padding="6dp">
-
             <!-- Nút Water Pump (ở trên cùng) -->
+            <Button
+                android:id="@+id/btn_mode"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:backgroundTint="#1b6355"
+                android:drawableEnd="@drawable/baseline_hdr_auto_24"
+                android:drawablePadding="8dp"
+                android:text="Mode Button"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
             <Button
                 android:id="@+id/water_pump_switch"
                 android:layout_width="180dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
                 android:backgroundTint="#1b6355"
                 android:drawableEnd="@drawable/ic_water"
                 android:drawablePadding="8dp"
@@ -118,13 +133,11 @@
                 android:textColor="@color/white"
                 android:textSize="15sp" />
 
-            <!-- Space giữa nút Water Pump và nút Check Disease -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- Nút Check Disease (ở giữa) -->
             <Button
                 android:id="@+id/btn_plants_disease"
                 android:layout_width="180dp"
