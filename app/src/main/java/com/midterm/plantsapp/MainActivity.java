@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     //Update waterPumpSwitch button's text
     private void updateButtonText() {
         binding.waterPumpSwitch.setText(isPumpOn ? "Turn off pump" : "Turn on pump");
-        binding.btnMode.setText(isAuto == 0 ? "Auto Mode: OFF" : "Auto Mode: ON");
+        binding.btnMode.setText(isAuto == 0 ? "Manual Mode" : "Auto Mode");
     }
 
     public void updatePlantStatus(TextView plantStatus, int moisturePercentage) {
