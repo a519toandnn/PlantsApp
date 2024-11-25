@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -39,37 +40,25 @@ public class PlantsDiseases extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.plants_diseases_main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
         binding.btnBack.setOnClickListener(view1 -> finish());
 
         imageUrlRef = FirebaseDatabase.getInstance(databaseURL).getReference("image_urls");
 
-        imageUrlRef.orderByChild("timestamp").limitToLast(1).addValueEventListener(new ValueEventListener() {
+        LinearLayout itemContainer = findViewById(R.id.item_container);
+
+
+        imageUrlRef.orderByChild("timestamp").limitToLast(10).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                itemContainer.removeAllViews(); // Xóa các item cũ trước khi thêm mới
+
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
                     String imageUrl = childSnapshot.child("url").getValue(String.class);
                     String predictedClass = childSnapshot.child("predicted_class").getValue(String.class);
                     String confidenceValue = childSnapshot.child("confidence_value").getValue(String.class);
 
-                    RequestOptions requestOptions = new RequestOptions()
-                            .fitCenter()
-                            .override(500, 500);
-
-                    Glide.with(PlantsDiseases.this)
-                            .load(imageUrl)
-                            .apply(requestOptions)
-                            .placeholder(R.drawable.default_image)
-                            .centerInside()
-                            .override(500, 500)
-                            .into(binding.plantImage);
-
-                    binding.plantDiseaseInfo.setText(String.format("%s: %s", predictedClass, confidenceValue));
+                    PlantItem plantItem = new PlantItem(PlantsDiseases.this, imageUrl, predictedClass, confidenceValue);
+                    itemContainer.addView(plantItem.getItemView());
                 }
             }
 

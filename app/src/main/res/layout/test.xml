@@ -1,228 +1,47 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="#004b3f"
-    tools:context=".MainActivity">
+    android:paddingLeft="16dp"
+    android:background="#EAF5E6">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="50dp"
-        android:layout_marginTop="-80dp"
-        app:cardElevation="4dp">
+    <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:contentDescription="Back"
+        android:src="@drawable/baseline_keyboard_return_24"
+        android:paddingBottom="10dp"
+        android:paddingTop="20dp"/>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <!-- Thông tin cây -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:paddingTop="140dp"
-                android:paddingBottom="16dp"
-                android:paddingStart="40dp"
-                android:paddingEnd="16dp">
-
-                <TextView
-                    android:id="@+id/plant_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Plant App"
-                    android:textColor="@android:color/black"
-                    android:textSize="30sp"
-                    android:paddingBottom="5dp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/plant_species"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Keep plants healthy"
-                    android:textColor="@android:color/black"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/plant_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/shape_label"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="Healthy"
-                    android:textColor="#10EF64"
-                    android:textSize="20sp" />
-            </LinearLayout>
-
-            <!-- Hình nền ở góc dưới bên phải -->
-            <ImageView
-                android:layout_width="222dp"
-                android:layout_height="213dp"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="8dp"
-                android:scaleType="fitCenter"
-                android:src="@mipmap/ic_launcher_plant" />
-        </FrameLayout>
-    </androidx.cardview.widget.CardView>
-
-
-    <LinearLayout
+    <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#004b3f"
-        android:orientation="vertical"
-        android:paddingLeft="30dp">
+        android:text="Disease record"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingBottom="16dp"
+        />
 
-        <TextView
-            android:id="@+id/plant_care_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Plant care"
-            android:textColor="@android:color/white"
-            android:textSize="30sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:orientation="horizontal">
+        android:layout_height="match_parent">
 
-        <!-- Bên trái -->
-
-        <!-- Bên phải -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="6dp">
+            android:paddingBottom="16dp"
+            android:layout_marginLeft="10dp">
 
-            <!-- Nút Water Pump -->
-            <Button
-                android:id="@+id/water_pump_switch"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="#1b6355"
-                android:drawableEnd="@drawable/ic_water"
-                android:drawablePadding="8dp"
-                android:text="Water Pump"
-                android:textColor="@color/white"
-                android:textSize="15sp" />
-
-            <!-- Nút Check Disease -->
-            <Button
-                android:id="@+id/btn_plants_disease"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="#1b6355"
-                android:drawableEnd="@drawable/baseline_local_hospital_24"
-                android:text="Check Disease"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp" />
+            <include layout="@layout/plant_item" />
+            <include layout="@layout/plant_item" />
+            <include layout="@layout/plant_item" />
 
         </LinearLayout>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:padding="16dp"
-            app:cardCornerRadius="50dp"
-            android:layout_marginRight="0dp"
-            android:backgroundTint="#1b6355"
-            android:layout_marginEnd="10dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Soil Moisture"
-                    android:textColor="#ffffff"
-                    android:textSize="20sp" />
-
-                <FrameLayout
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:layout_marginTop="32dp"
-                    android:clipChildren="true"
-                    android:clipToPadding="true">
-
-                    <com.midterm.plantsapp.WaveView
-                        android:id="@+id/waveView"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-
-                    <TextView
-                        android:id="@+id/moisture_percentage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="70%"
-                        android:textColor="#000000"
-                        android:textSize="30sp" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/connection_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Status: Disconnected"
-                    android:textColor="#ffffff"
-                    android:textSize="15sp">
-                </TextView>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="5dp"
-            android:text="Information"
-            android:textColor="#fbf6fb"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:paddingTop="10dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp"
-            android:text="Smarter Plant Care: Detect Diseases Early, Promote Healthier Growth"
-            android:textColor="#9bb6b3"
-            android:textSize="17sp"
-            android:textStyle=""
-            android:paddingLeft="30dp"/>
-
-    </LinearLayout>
+    </ScrollView>
 </LinearLayout>
