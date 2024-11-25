@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference pumpStateRef;
     private DatabaseReference tokenRef;
     private boolean isPumpOn = false;
+    private Integer isAuto;
     private static final String TAG = "MainActivity";
     private String databaseURL = "https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         moistureRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("moisture");
         pumpStateRef = FirebaseDatabase.getInstance(databaseURL)
-                                        .getReference("pump_state");
+                                        .getReference("pump");
         tokenRef = FirebaseDatabase.getInstance(databaseURL).getReference("device_tokens");
 
         // Get token of Device
@@ -130,9 +131,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    String state = dataSnapshot.getValue(String.class);
+                    String state = dataSnapshot.child("status").getValue(String.class);
+                    isAuto = dataSnapshot.child("priority").getValue(Integer.class);
                     isPumpOn = "ON".equals(state);
-                    updatePumpButtonText();
+                    updateButtonText();
                 } else {
                     Log.w("MainActivity", "No pump state data available.");
                 }
@@ -146,6 +148,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Turn on/off pump
         binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
+
+        //Turn on/off auto
+        binding.btnMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                isAuto = (isAuto == 0) ? 1 : 0;
+                pumpStateRef.child("priority").setValue(isAuto);
+                updateButtonText();
+            }
+        });
 
         // Change to Plants Diseases Screen
         binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
@@ -187,11 +199,13 @@ public class MainActivity extends AppCompatActivity {
     // Update pump status to Realtime Database
     private void togglePumpState() {
         String newState = isPumpOn ? "OFF" : "ON";
-        pumpStateRef.setValue(newState).addOnCompleteListener(task -> {
+        binding.btnMode.setText("Auto Mode: OFF");
+        pumpStateRef.child("priority").setValue(0);
+        pumpStateRef.child("status").setValue(newState).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String message = newState.equals("ON") ? "Máy bơm đã bật" : "Máy bơm đã tắt";
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                updatePumpButtonText();
+                updateButtonText();
                 isPumpOn = (newState.equals("ON") ? true : false);
             } else {
                 Toast.makeText(MainActivity.this, "Lỗi khi cập nhật trạng thái máy bơm", Toast.LENGTH_SHORT).show();
@@ -200,8 +214,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Update waterPumpSwitch button's text
-    private void updatePumpButtonText() {
-        binding.waterPumpSwitch.setText(isPumpOn ? "Pump on" : "Pump off");
+    private void updateButtonText() {
+        binding.waterPumpSwitch.setText(isPumpOn ? "Turn off pump" : "Turn on pump");
+        binding.btnMode.setText(isAuto == 0 ? "Auto Mode: OFF" : "Auto Mode: ON");
     }
 
     public void updatePlantStatus(TextView plantStatus, int moisturePercentage) {
