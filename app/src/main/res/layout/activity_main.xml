@@ -145,7 +145,7 @@
                 android:layout_gravity="center_horizontal"
                 android:backgroundTint="#1b6355"
                 android:drawableEnd="@drawable/baseline_local_hospital_24"
-                android:text="Check Disease"
+                android:text="Disease Log"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp" />
 
@@ -155,11 +155,12 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
+            <!-- CardView (ở dưới cùng, có kích thước cố định 180dp x 180dp) -->
             <androidx.cardview.widget.CardView
                 android:layout_width="180dp"
-                android:layout_height="140dp"
+                android:layout_height="180dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="10dp"
                 app:cardCornerRadius="16dp"
                 android:backgroundTint="#1b6355"
                 >
@@ -257,6 +258,7 @@
 
 
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -267,23 +269,22 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
             android:paddingBottom="5dp"
             android:text="@string/information"
             android:textColor="#fbf6fb"
             android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:paddingTop="10dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="30dp"
             android:paddingTop="5dp"
             android:text="@string/smarter_plant_care_detect_diseases_early_promote_healthier_growth"
             android:textColor="#9bb6b3"
             android:textSize="17sp"
-            android:textStyle="" />
+            android:textStyle=""
+            android:paddingStart="30dp"/>
 
     </LinearLayout>
-
 </LinearLayout>
