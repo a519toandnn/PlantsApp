@@ -103,10 +103,10 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:padding="6dp">
-            <!-- Nút Water Pump (ở trên cùng) -->
+
             <Button
                 android:id="@+id/btn_mode"
-                android:layout_width="187dp"
+                android:layout_width="180dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:backgroundTint="#1b6355"
@@ -114,7 +114,7 @@
                 android:drawablePadding="8dp"
                 android:text="Mode Button"
                 android:textColor="@color/white"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="match_parent"
@@ -123,7 +123,7 @@
 
             <Button
                 android:id="@+id/water_pump_switch"
-                android:layout_width="187dp"
+                android:layout_width="180dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:backgroundTint="#1b6355"
@@ -131,7 +131,7 @@
                 android:drawablePadding="8dp"
                 android:text="Water Pump"
                 android:textColor="@color/white"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="match_parent"
@@ -140,14 +140,14 @@
 
             <Button
                 android:id="@+id/btn_plants_disease"
-                android:layout_width="187dp"
+                android:layout_width="180dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:backgroundTint="#1b6355"
                 android:drawableEnd="@drawable/baseline_local_hospital_24"
                 android:text="Check Disease"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <!-- Space giữa nút Check Disease và CardView -->
             <View
@@ -155,12 +155,11 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- CardView (ở dưới cùng, có kích thước cố định 180dp x 180dp) -->
             <androidx.cardview.widget.CardView
                 android:layout_width="180dp"
-                android:layout_height="180dp"
+                android:layout_height="140dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="5dp"
                 app:cardCornerRadius="16dp"
                 android:backgroundTint="#1b6355"
                 >
@@ -174,7 +173,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Plant condition"
+                        android:text="@string/plant_condition"
                         android:textColor="@color/white"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -187,7 +186,7 @@
                         android:background="@drawable/shape_label"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="4dp"
-                        android:text="Condition"
+                        android:text="@string/condition"
                         android:textColor="#10EF64"
                         android:textSize="20sp" />
 
@@ -204,7 +203,6 @@
             android:orientation="vertical"
             android:padding="16dp"
             app:cardCornerRadius="50dp"
-            android:layout_marginRight="0dp"
             android:backgroundTint="#1b6355"
             android:layout_marginEnd="10dp">
 
@@ -218,7 +216,7 @@
                     android:id="@+id/title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Soil Moisture"
+                    android:text="@string/soil_moisture"
                     android:textColor="#ffffff"
                     android:textSize="20sp" />
 
@@ -239,7 +237,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="70%"
+                        android:text=""
                         android:textColor="#000000"
                         android:textSize="30sp" />
                 </FrameLayout>
@@ -259,34 +257,33 @@
 
 
     </LinearLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="10dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="10dp"
             android:paddingBottom="5dp"
-            android:text="Information"
+            android:text="@string/information"
             android:textColor="#fbf6fb"
             android:textSize="22sp"
-            android:textStyle="bold"
-            android:paddingTop="10dp"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="5dp"
+            android:paddingStart="30dp"
             android:paddingTop="5dp"
-            android:text="Smarter Plant Care: Detect Diseases Early, Promote Healthier Growth"
+            android:text="@string/smarter_plant_care_detect_diseases_early_promote_healthier_growth"
             android:textColor="#9bb6b3"
             android:textSize="17sp"
-            android:textStyle=""
-            android:paddingLeft="30dp"/>
+            android:textStyle="" />
 
     </LinearLayout>
+
 </LinearLayout>

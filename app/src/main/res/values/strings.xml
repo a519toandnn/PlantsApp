@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">PlantsApp</string>
+    <string name="smarter_plant_care_detect_diseases_early_promote_healthier_growth">Smarter Plant Care: Detect Diseases Early, Promote Healthier Growth</string>
+    <string name="information">Information</string>
+    <string name="soil_moisture">Soil Moisture</string>
+    <string name="condition">Condition</string>
+    <string name="plant_condition">Plant condition</string>
 </resources>

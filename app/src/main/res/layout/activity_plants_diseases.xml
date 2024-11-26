@@ -42,6 +42,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="scroll content"
         android:paddingTop="8dp">
 
         <LinearLayout
@@ -51,7 +52,6 @@
             android:orientation="vertical"
             android:paddingBottom="16dp"
             android:layout_marginStart="10dp">
-
 
 
         </LinearLayout>
