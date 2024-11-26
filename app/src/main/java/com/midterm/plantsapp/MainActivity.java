@@ -41,6 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private String databaseURL = "https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
+    private TextView connectionStatus;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkNotificationPermission();
         }
+
+
 
         moistureRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("moisture");
@@ -97,6 +102,27 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 });
+
+
+        DatabaseReference connectedRef = FirebaseDatabase.getInstance(databaseURL).getReference(".info/connected");
+        connectedRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean connected = snapshot.getValue(Boolean.class);
+                if (connected != null && connected) {
+                    binding.connectionStatus.setText("Status: Connected");
+                    binding.connectionStatus.setTextColor(Color.parseColor("#10EF64")); // Màu xanh lá
+                } else {
+                    binding.connectionStatus.setText("Status: Disconnected");
+                    binding.connectionStatus.setTextColor(Color.parseColor("#FF0000")); // Màu đỏ
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Listener was cancelled at .info/connected.", error.toException());
+            }
+        });
 
 
         // Get moisture from Realtime Database
