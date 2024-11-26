@@ -5,4 +5,7 @@
     <string name="soil_moisture">Soil Moisture</string>
     <string name="condition">Condition</string>
     <string name="plant_condition">Plant condition</string>
+    <string name="disease_log">Disease Log</string>
+    <string name="back">Back</string>
+    <string name="scroll_content">scroll content</string>
 </resources>
