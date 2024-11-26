@@ -32,7 +32,7 @@ public class PlantItem {
         Glide.with(context)
                 .load(imageUrl)
                 .apply(requestOptions)
-                .placeholder(R.drawable.default_image)
+                .placeholder(R.drawable.baseline_downloading_24)
                 .into(plantImage);
 
         diseaseName.setText(String.format("%s", predictedClass));
