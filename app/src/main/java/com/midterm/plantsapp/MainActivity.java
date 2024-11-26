@@ -2,10 +2,12 @@ package com.midterm.plantsapp;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference pumpStateRef;
     private DatabaseReference tokenRef;
     private boolean isPumpOn = false;
+    private Integer isAuto;
     private static final String TAG = "MainActivity";
     private String databaseURL = "https://plantsapp-58396-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         moistureRef = FirebaseDatabase.getInstance(databaseURL)
                                         .getReference("moisture");
         pumpStateRef = FirebaseDatabase.getInstance(databaseURL)
-                                        .getReference("pump_state");
+                                        .getReference("pump");
         tokenRef = FirebaseDatabase.getInstance(databaseURL).getReference("device_tokens");
 
         // Get token of Device
@@ -105,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
                     if (moisture != null) {
                         binding.moisturePercentage.setText(moisture + "%");
                         binding.waveView.setPercentage(moisture);
+
+                        // Cập nhật trạng thái cây
+                        updatePlantStatus(binding.plantStatus, moisture);
                     } else {
                         Log.w("MainActivity", "Moisture value is null");
                     }
@@ -112,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.w("MainActivity", "No data available or 'moisture' field does not exist.");
                 }
             }
+
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -124,9 +131,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    String state = dataSnapshot.getValue(String.class);
+                    String state = dataSnapshot.child("status").getValue(String.class);
+                    isAuto = dataSnapshot.child("priority").getValue(Integer.class);
                     isPumpOn = "ON".equals(state);
-                    updatePumpButtonText();
+                    updateButtonText();
                 } else {
                     Log.w("MainActivity", "No pump state data available.");
                 }
@@ -140,6 +148,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Turn on/off pump
         binding.waterPumpSwitch.setOnClickListener(v -> togglePumpState());
+
+        //Turn on/off auto
+        binding.btnMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                isAuto = (isAuto == 0) ? 1 : 0;
+                pumpStateRef.child("priority").setValue(isAuto);
+                updateButtonText();
+            }
+        });
 
         // Change to Plants Diseases Screen
         binding.btnPlantsDisease.setOnClickListener(new View.OnClickListener() {
@@ -181,11 +199,13 @@ public class MainActivity extends AppCompatActivity {
     // Update pump status to Realtime Database
     private void togglePumpState() {
         String newState = isPumpOn ? "OFF" : "ON";
-        pumpStateRef.setValue(newState).addOnCompleteListener(task -> {
+        binding.btnMode.setText("Auto Mode: OFF");
+        pumpStateRef.child("priority").setValue(0);
+        pumpStateRef.child("status").setValue(newState).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String message = newState.equals("ON") ? "Máy bơm đã bật" : "Máy bơm đã tắt";
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                updatePumpButtonText();
+                updateButtonText();
                 isPumpOn = (newState.equals("ON") ? true : false);
             } else {
                 Toast.makeText(MainActivity.this, "Lỗi khi cập nhật trạng thái máy bơm", Toast.LENGTH_SHORT).show();
@@ -194,7 +214,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Update waterPumpSwitch button's text
-    private void updatePumpButtonText() {
-        binding.waterPumpSwitch.setText(isPumpOn ? "Tắt máy bơm" : "Bật máy bơm");
+    private void updateButtonText() {
+        binding.waterPumpSwitch.setText(isPumpOn ? "Turn off pump" : "Turn on pump");
+        binding.btnMode.setText(isAuto == 0 ? "Manual Mode" : "Auto Mode");
     }
+
+    public void updatePlantStatus(TextView plantStatus, int moisturePercentage) {
+        if (moisturePercentage >= 60 && moisturePercentage <= 70) {
+            // Healthy case
+            plantStatus.setTextColor(Color.parseColor("#10EF64")); // Màu xanh lá
+            plantStatus.setBackgroundResource(R.drawable.shape_label); // Background "Healthy"
+            plantStatus.setText("Healthy");
+        } else {
+            // Warning case
+            plantStatus.setTextColor(Color.parseColor("#9c8c1f")); // Màu vàng nâu
+            plantStatus.setBackgroundResource(R.drawable.shape_warning_label); // Background "Warning"
+            plantStatus.setText("Warning");
+        }
+    }
+
 }

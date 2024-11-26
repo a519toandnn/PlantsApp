@@ -1,0 +1,85 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- Plant Item -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/plant_item_background"
+        android:layout_marginBottom="12dp"
+        android:elevation="4dp">
+
+        <!-- Image -->
+        <ImageView
+            android:id="@+id/plant_image"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/baseline_downloading_24"
+            android:contentDescription="Plant Image"
+            android:scaleType="centerCrop" />
+
+        <!-- Texts -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Disease name:"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/plant_disease_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Loading"
+                android:textSize="14sp"
+                android:textColor="#B8E994" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:id="@+id/percentage_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Percentage:"
+                    android:textSize="14sp"
+                    android:textColor="#10EF64" />
+
+                <TextView
+                    android:id="@+id/percentage_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:textColor="#10EF64"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+       <ImageButton
+           android:id="@+id/more_info_button"
+           android:contentDescription="moreinfo"
+           android:layout_width="49dp"
+           android:layout_height="match_parent"
+           android:background="?attr/selectableItemBackground"
+           android:src="@drawable/baseline_more_horiz_24">
+       </ImageButton>
+
+    </LinearLayout>
+</FrameLayout>
