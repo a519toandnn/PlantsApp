@@ -104,6 +104,12 @@
             android:orientation="vertical"
             android:padding="6dp">
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+
             <Button
                 android:id="@+id/btn_mode"
                 android:layout_width="180dp"
@@ -116,10 +122,10 @@
                 android:textColor="@color/white"
                 android:textSize="14sp" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+<!--            <View-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="1" />-->
 
             <Button
                 android:id="@+id/water_pump_switch"
@@ -133,10 +139,10 @@
                 android:textColor="@color/white"
                 android:textSize="14sp" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+<!--            <View-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="1" />-->
 
             <Button
                 android:id="@+id/btn_plants_disease"
@@ -156,43 +162,43 @@
                 android:layout_weight="1" />
 
             <!-- CardView (ở dưới cùng, có kích thước cố định 180dp x 180dp) -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="180dp"
-                android:layout_height="180dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
-                app:cardCornerRadius="16dp"
-                android:backgroundTint="#1b6355"
-                >
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:layout_width="180dp"-->
+<!--                android:layout_height="180dp"-->
+<!--                android:layout_gravity="center_horizontal"-->
+<!--                android:layout_marginTop="10dp"-->
+<!--                app:cardCornerRadius="16dp"-->
+<!--                android:backgroundTint="#1b6355"-->
+<!--                >-->
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:gravity="center"-->
+<!--                    android:orientation="vertical">-->
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/plant_condition"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="@string/plant_condition"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textSize="15sp"-->
+<!--                        android:textStyle="bold" />-->
 
-                    <TextView
-                        android:id="@+id/plant_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/shape_label"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:text="@string/condition"
-                        android:textColor="#10EF64"
-                        android:textSize="20sp" />
+<!--                    <TextView-->
+<!--                        android:id="@+id/plant_status"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="8dp"-->
+<!--                        android:background="@drawable/shape_label"-->
+<!--                        android:paddingHorizontal="12dp"-->
+<!--                        android:paddingVertical="4dp"-->
+<!--                        android:text="@string/condition"-->
+<!--                        android:textColor="#10EF64"-->
+<!--                        android:textSize="20sp" />-->
 
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+<!--                </LinearLayout>-->
+<!--            </androidx.cardview.widget.CardView>-->
 
         </LinearLayout>
 

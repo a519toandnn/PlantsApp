@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         binding.waveView.setPercentage(moisture);
 
                         // Cập nhật trạng thái cây
-                        updatePlantStatus(binding.plantStatus, moisture);
+//                        updatePlantStatus(binding.plantStatus, moisture);
                     } else {
                         Log.w("MainActivity", "Moisture value is null");
                     }
