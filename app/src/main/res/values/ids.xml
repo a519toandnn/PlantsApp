@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="plant_status" type="id">plantStatus</item>
+    <item name="plant_status" type="id"/>
 </resources>

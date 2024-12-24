@@ -31,20 +31,21 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Disease name:"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF" />
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Disease name:"-->
+<!--                android:textSize="18sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textColor="#FFFFFF" />-->
 
             <TextView
                 android:id="@+id/plant_disease_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Loading"
-                android:textSize="14sp"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 android:textColor="#B8E994" />
 
             <LinearLayout
