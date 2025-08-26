@@ -12,7 +12,9 @@ Farmers receive **real-time notifications via a mobile application** about soil 
 
 ## ⚙️ Technologies Used
 - **Mobile Application**: Java (Android)  
-- **Database**: Firebase Realtime Database  
+- **Database**: Firebase Realtime Database
+- **Backend Server**: Flask (acts as middleware between Firebase and Mobile App)  
+- **Cloud Storage**: AWS S3 Bucket (for storing captured leaf images)  
 - **Hardware**: Raspberry Pi 4, Webcam, Soil Moisture Sensor, Water Pump  
 - **AI Model**: Image-based potato disease classification (Server-side)
 
